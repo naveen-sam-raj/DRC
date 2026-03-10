@@ -497,7 +497,7 @@ export default function Home() {
                     onMouseLeave={e => e.currentTarget.querySelector(".gallery-overlay").style.opacity = "0"}
                   >
                     <img
-                      src={`${(window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")?`http://${window.location.hostname}:3001`:"https://drc-32zw.onrender.com"}${img.url}`}
+                      src={img.url}
                       alt={img.caption || "Church Gallery"}
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />

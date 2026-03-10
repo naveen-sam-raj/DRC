@@ -7,12 +7,21 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+// ── Cloudinary Config ──────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// Serve gallery images statically
+// Serve static files from public (for hero image etc.)
 const PUBLIC_DIR = path.join(__dirname, "../public");
 app.use("/images", express.static(path.join(PUBLIC_DIR, "images")));
 
@@ -22,18 +31,18 @@ const CONFIG_FILE  = path.join(__dirname, "config.json");
 const EVENTS_FILE  = path.join(__dirname, "events.json");
 const SERVICES_FILE= path.join(__dirname, "services.json");
 const GALLERY_FILE = path.join(__dirname, "gallery.json");
-const GALLERY_DIR  = path.join(PUBLIC_DIR, "images/gallery");
 
-// ── Multer (gallery image upload) ───────────────────────────────
-const storage = multer.diskStorage({
-  destination: GALLERY_DIR,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `gallery_${Date.now()}${ext}`);
+// ── Multer + Cloudinary (gallery image upload) ───────────────────
+const cloudinaryStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "drc-gallery",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "gif"],
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
   },
 });
 const upload = multer({
-  storage,
+  storage: cloudinaryStorage,
   limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
@@ -156,20 +165,24 @@ app.post("/api/gallery/upload", upload.single("image"), (req, res) => {
   const images = getGallery();
   const img = {
     id: `g${Date.now()}`,
-    filename: req.file.filename,
-    url: `/images/gallery/${req.file.filename}`,
+    filename: req.file.filename,          // cloudinary public_id
+    url: req.file.path,                   // cloudinary secure_url (full https://)
     caption: req.body.caption || "",
     uploadedAt: new Date().toISOString(),
   };
   images.push(img); saveGallery(images); res.json(img);
 });
 
-app.delete("/api/gallery/:id", (req, res) => {
+app.delete("/api/gallery/:id", async (req, res) => {
   const images = getGallery();
   const img = images.find(i => i.id === req.params.id);
-  if (img) {
-    const fp = path.join(GALLERY_DIR, img.filename);
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  if (img && img.filename) {
+    try {
+      // Delete from Cloudinary using public_id (stored in filename)
+      await cloudinary.uploader.destroy(img.filename);
+    } catch (err) {
+      console.error("Cloudinary delete error:", err.message);
+    }
   }
   saveGallery(images.filter(i => i.id !== req.params.id));
   res.json({ success: true });
