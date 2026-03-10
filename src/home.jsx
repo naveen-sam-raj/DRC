@@ -565,13 +565,12 @@ export default function Home() {
             <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 8px 40px rgba(26,35,126,0.12)", border: "1px solid rgba(184,134,11,0.18)" }}>
               <iframe
                 title="Divine Resurrection Church Location"
-                src="https://maps.google.com/maps?q=P4G9%2BP7W%2C+SaltPan+Road%2C+Ganesh+Nagar%2C+Mullakadu%2C+Thoothukudi%2C+Tamil+Nadu+628005&output=embed&z=17"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=78.1180%2C8.7290%2C8.7360%2C78.1300&layer=mapnik&marker=8.7322%2C78.1225"
                 width="100%"
                 height="320"
                 style={{ border: 0, display: "block" }}
                 allowFullScreen
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
             <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
@@ -586,6 +585,21 @@ export default function Home() {
               >
                 Open in Maps →
               </a>
+            </div>
+
+            {/* Church Photo */}
+            <div className="reveal" style={{ borderRadius: 28, overflow: "hidden", position: "relative", minHeight: 400, boxShadow: "0 24px 64px rgba(26,35,126,0.15)", border: "1px solid rgba(184,134,11,0.15)" }}>
+              <img
+                src="/images/church-hero.jpg"
+                alt="Divine Resurrection Church"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", minHeight: 400, display: "block" }}
+              />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(26,35,126,0.75) 0%, transparent 55%)" }}>
+                <div style={{ position: "absolute", bottom: 24, left: 24, right: 24 }}>
+                  <div style={{ fontFamily: F, fontSize: "1.05rem", fontWeight: 700, color: "#fff", marginBottom: 4 }}>Divine Resurrection Church</div>
+                  <div style={{ fontFamily: F, fontSize: "0.8rem", color: "rgba(255,255,255,0.8)" }}>SaltPan Road, Mullakkadu, Thoothukudi</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
