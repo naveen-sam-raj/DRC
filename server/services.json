@@ -1,0 +1,81 @@
+{
+  "services": [
+    {
+      "id": "s1",
+      "day": "All Days",
+      "title": "Morning Service",
+      "desc": "6:00 AM",
+      "icon": "🌅"
+    },
+    {
+      "id": "s2",
+      "day": "Sunday",
+      "title": "Morning Service",
+      "desc": "9:00 AM",
+      "icon": "☀️"
+    },
+    {
+      "id": "s3",
+      "day": "Daily",
+      "title": "Evening Prayer",
+      "desc": "7:00 PM",
+      "icon": "🌙"
+    },
+    {
+      "id": "s4",
+      "day": "Wednesday",
+      "title": "Lithaniya",
+      "desc": "7:00 PM",
+      "icon": "🕯️"
+    },
+    {
+      "id": "s5",
+      "day": "Friday",
+      "title": "Free Service",
+      "desc": "7:00 PM",
+      "icon": "🔥"
+    },
+    {
+      "id": "s6",
+      "day": "1st Friday",
+      "title": "All Night Prayer",
+      "desc": "7:00 PM",
+      "icon": "⭐"
+    },
+    {
+      "id": "s7",
+      "day": "2nd Sunday",
+      "title": "Communion Service",
+      "desc": "9:00 AM",
+      "icon": "🍷"
+    },
+    {
+      "id": "s8",
+      "day": "Last Sunday",
+      "title": "Free Service",
+      "desc": "9:00 AM",
+      "icon": "✝️"
+    },
+    {
+      "id": "s9",
+      "day": "3rd Saturday",
+      "title": "Fasting Prayer",
+      "desc": "11:00 AM",
+      "icon": "🙏"
+    },
+    {
+      "id": "s10",
+      "day": "Monthly 1st",
+      "title": "Promise Service",
+      "desc": "6:00 AM",
+      "icon": "🌟"
+    },
+    {
+      "id": "s11",
+      "day": "Monthly 1st",
+      "title": "Communion Service",
+      "desc": "6:00 PM",
+      "icon": "🕊️"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "events": [
+    {
+      "id": "e1",
+      "date": "MAR 15",
+      "title": "Easter Prayer Vigil",
+      "desc": "All night prayer and worship",
+      "tag": "Upcoming"
+    },
+    {
+      "id": "e2",
+      "date": "MAR 22",
+      "title": "Easter Sunday Celebration",
+      "desc": "Grand worship & communion",
+      "tag": "Special"
+    },
+    {
+      "id": "e3",
+      "date": "APR 05",
+      "title": "Youth Retreat",
+      "desc": "2-day spiritual retreat for youth",
+      "tag": "Youth"
+    },
+    {
+      "id": "e4",
+      "date": "APR 20",
+      "title": "Community Outreach",
+      "desc": "Serving Mullakkadu community",
+      "tag": "Outreach"
+    }
+  ]
+}
