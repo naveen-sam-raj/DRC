@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
-const API = `http://${window.location.hostname}:3001/api`;
+const API = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? `http://${window.location.hostname}:3001/api`
+  : "https://drc-32zw.onrender.com/api";
 const F = "'Inter', sans-serif";
 
 // ── helpers ──────────────────────────────────────────────────────

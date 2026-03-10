@@ -9,7 +9,7 @@ const axios = require("axios");
 const multer = require("multer");
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 // Serve gallery images statically

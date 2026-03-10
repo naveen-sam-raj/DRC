@@ -122,7 +122,9 @@ export default function Home() {
 
   // Fetch dynamic data from server
   useEffect(() => {
-    const srv = `http://${window.location.hostname}:3001`;
+    const srv = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+      ? `http://${window.location.hostname}:3001`
+      : "https://drc-32zw.onrender.com";
     fetch(`${srv}/api/services`).then(r => r.json()).then(setServices).catch(() => {});
     fetch(`${srv}/api/events`).then(r => r.json()).then(setEvents).catch(() => {});
     fetch(`${srv}/api/gallery`).then(r => r.json()).then(setGallery).catch(() => {});
@@ -495,7 +497,7 @@ export default function Home() {
                     onMouseLeave={e => e.currentTarget.querySelector(".gallery-overlay").style.opacity = "0"}
                   >
                     <img
-                      src={`http://${window.location.hostname}:3001${img.url}`}
+                      src={`${(window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")?`http://${window.location.hostname}:3001`:"https://drc-32zw.onrender.com"}${img.url}`}
                       alt={img.caption || "Church Gallery"}
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
