@@ -585,7 +585,7 @@ export default function Admin() {
               {gallery.map(img=>(
                 <div key={img.id} style={{background:"#fff",borderRadius:14,border:"1px solid #e2e8f0",overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
                   <div style={{position:"relative",paddingTop:"66%",background:"#f8fafc"}}>
-                    <img src={`http://${window.location.hostname}:3001${img.url}`} alt={img.caption||"gallery"} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+                    <img src={img.url} alt={img.caption||"gallery"} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
                   </div>
                   <div style={{padding:"12px 14px"}}>
                     <div style={{fontSize:"0.82rem",color:"#475569",fontFamily:F,marginBottom:10,minHeight:20}}>{img.caption||<span style={{color:"#cbd5e1"}}>No caption</span>}</div>
