@@ -323,8 +323,8 @@ export default function Home() {
               border: "2px solid rgba(255,255,255,0.6)", cursor: "pointer", textDecoration: "none",
               display: "inline-block", transition: "all 0.2s",
             }}
-              onMouseEnter={e => { e.target.style.background = "rgba(255,255,255,0.15)"; e.target.style.borderColor = "#fff"; }}
-              onMouseLeave={e => { e.target.style.background = "transparent"; e.target.style.borderColor = "rgba(255,255,255,0.6)"; }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = "#fff"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.6)"; }}
             >Our Story</a>
           </div>
         </div>
