@@ -39,6 +39,7 @@ export default function Home() {
   const [services, setServices] = useState(DEFAULT_SERVICES);
   const [events, setEvents] = useState(DEFAULT_EVENTS);
   const [gallery, setGallery] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -121,7 +122,27 @@ export default function Home() {
       : "https://drc-32zw.onrender.com";
     fetch(`${srv}/api/services`).then(r => r.json()).then(setServices).catch(() => {});
     fetch(`${srv}/api/events`).then(r => r.json()).then(setEvents).catch(() => {});
-    fetch(`${srv}/api/gallery`).then(r => r.json()).then(setGallery).catch(() => {});
+
+    // Render free tier sleeps after inactivity — use a long timeout + 1 retry
+    const fetchGallery = async (attempt = 1) => {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 90000); // 90s timeout
+        const res = await fetch(`${srv}/api/gallery`, { signal: controller.signal });
+        clearTimeout(timer);
+        const data = await res.json();
+        setGallery(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (attempt < 2) {
+          // Wait 5s then retry once (server may still be waking up)
+          setTimeout(() => fetchGallery(2), 5000);
+        }
+      } finally {
+        if (attempt >= 2) setGalleryLoading(false);
+      }
+      setGalleryLoading(false);
+    };
+    fetchGallery();
   }, []);
 
   return (
@@ -236,6 +257,19 @@ export default function Home() {
         ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-track { background:#e8eaf6; }
         ::-webkit-scrollbar-thumb { background:#3949ab; border-radius:3px; }
+
+        /* GALLERY SHIMMER SKELETON */
+        @keyframes shimmer {
+          0%   { background-position: -600px 0; }
+          100% { background-position:  600px 0; }
+        }
+        .gallery-skeleton {
+          background: linear-gradient(90deg, #e8eaf6 25%, #d0d4f0 50%, #e8eaf6 75%);
+          background-size: 600px 100%;
+          animation: shimmer 1.6s infinite linear;
+          border-radius: 20px;
+          aspect-ratio: 1;
+        }
       `}</style>
 
       {/* ── NAV ── */}
@@ -473,48 +507,55 @@ export default function Home() {
             </h2>
           </div>
           <div className="reveal grid-3">
-            {gallery.length === 0
-              ? [...Array(6)].map((_, i) => (
-                  <div key={i} className={`gallery-item ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 40, marginBottom: 10 }}>✝️</div>
-                      <div style={{ fontFamily: F, fontSize: "0.72rem", color: "#78909c", fontWeight: 500 }}>Photo Coming Soon</div>
-                    </div>
-                  </div>
+            {galleryLoading
+              ? // Shimmer skeletons while server wakes up
+                [...Array(6)].map((_, i) => (
+                  <div key={i} className="gallery-skeleton" />
                 ))
-              : gallery.map((img, i) => (
-                  <div
-                    key={img.id}
-                    className={`gallery-item ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
-                    style={{ position: "relative", overflow: "hidden", cursor: "pointer" }}
-                    onMouseEnter={e => e.currentTarget.querySelector(".gallery-overlay").style.opacity = "1"}
-                    onMouseLeave={e => e.currentTarget.querySelector(".gallery-overlay").style.opacity = "0"}
-                  >
-                    <img
-                      src={img.url}
-                      alt={img.caption || "Church Gallery"}
-                      crossOrigin="anonymous"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.parentElement.style.background = "linear-gradient(135deg, #e8eaf6, #c5cae9)";
-                      }}
-                    />
-                    {img.caption && (
-                      <div
-                        className="gallery-overlay"
-                        style={{
-                          position: "absolute", inset: 0,
-                          background: "linear-gradient(to top, rgba(26,35,126,0.85) 0%, transparent 60%)",
-                          display: "flex", alignItems: "flex-end", padding: "18px 16px",
-                          opacity: 0, transition: "opacity 0.3s ease",
-                        }}
-                      >
-                        <span style={{ fontFamily: F, fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}>{img.caption}</span>
+              : gallery.length === 0
+                ? // Fully loaded but no images
+                  [...Array(6)].map((_, i) => (
+                    <div key={i} className={`gallery-item ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 40, marginBottom: 10 }}>✝️</div>
+                        <div style={{ fontFamily: F, fontSize: "0.72rem", color: "#78909c", fontWeight: 500 }}>Photo Coming Soon</div>
                       </div>
-                    )}
-                  </div>
-                ))
+                    </div>
+                  ))
+                : // Images loaded
+                  gallery.map((img, i) => (
+                    <div
+                      key={img.id}
+                      className={`gallery-item ${i % 2 === 0 ? 'reveal-left' : 'reveal-right'}`}
+                      style={{ position: "relative", overflow: "hidden", cursor: "pointer" }}
+                      onMouseEnter={e => e.currentTarget.querySelector(".gallery-overlay") && (e.currentTarget.querySelector(".gallery-overlay").style.opacity = "1")}
+                      onMouseLeave={e => e.currentTarget.querySelector(".gallery-overlay") && (e.currentTarget.querySelector(".gallery-overlay").style.opacity = "0")}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.caption || "Church Gallery"}
+                        crossOrigin="anonymous"
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          e.target.parentElement.style.background = "linear-gradient(135deg, #e8eaf6, #c5cae9)";
+                        }}
+                      />
+                      {img.caption && (
+                        <div
+                          className="gallery-overlay"
+                          style={{
+                            position: "absolute", inset: 0,
+                            background: "linear-gradient(to top, rgba(26,35,126,0.85) 0%, transparent 60%)",
+                            display: "flex", alignItems: "flex-end", padding: "18px 16px",
+                            opacity: 0, transition: "opacity 0.3s ease",
+                          }}
+                        >
+                          <span style={{ fontFamily: F, fontSize: "0.82rem", fontWeight: 600, color: "#fff" }}>{img.caption}</span>
+                        </div>
+                      )}
+                    </div>
+                  ))
             }
 
           </div>
