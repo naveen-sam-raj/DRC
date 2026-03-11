@@ -146,6 +146,9 @@ async function syncGalleryFromCloudinary() {
 // Run sync immediately on startup
 syncGalleryFromCloudinary();
 
+// ── PING (keep-alive health check) ─────────────────────────────
+app.get("/api/ping", (req, res) => res.json({ status: "ok", time: new Date().toISOString() }));
+
 // ── AUTH ────────────────────────────────────────────────────────
 app.post("/api/auth/login", (req, res) => {
   const { adminPassword } = getConfig();
@@ -322,6 +325,22 @@ cron.schedule("0 8 * * *", async () => {
   }
 });
 
+// ── CRON — Self-ping every 14 min (keep Render awake) ───────────
+// Render free tier sleeps after 15 min of inactivity.
+// Pinging ourselves every 14 min prevents that.
+const SELF_URL = process.env.RENDER_EXTERNAL_URL || "https://drc-32zw.onrender.com";
+if (!SELF_URL.includes("localhost")) {
+  cron.schedule("*/14 * * * *", async () => {
+    try {
+      const res = await axios.get(`${SELF_URL}/api/ping`, { timeout: 10000 });
+      console.log(`🏓 Keep-alive ping OK — ${res.data.time}`);
+    } catch (err) {
+      console.warn(`⚠️  Keep-alive ping failed: ${err.message}`);
+    }
+  });
+  console.log(`🔁 Keep-alive self-ping enabled → ${SELF_URL}/api/ping (every 14 min)`);
+}
+
 // ── START ────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`
@@ -329,5 +348,6 @@ app.listen(PORT, () => console.log(`
 ║   Divine Resurrection Church - Server        ║
 ║   Running on http://localhost:${PORT}           ║
 ║   Birthday SMS: Daily at 8:00 AM             ║
+║   Keep-alive ping: Every 14 minutes          ║
 ╚══════════════════════════════════════════════╝
 `));
