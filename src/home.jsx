@@ -56,13 +56,7 @@ export default function Home() {
       { y: 30, opacity: 0 },
       { y: 0, opacity: 1, duration: 1, ease: "power3.out", delay: 0.9 }
     );
-    gsap.fromTo(".cross-glow",
-      { scale: 0.8, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 2, ease: "elastic.out(1,0.5)", delay: 0.2 }
-    );
-    gsap.to(".cross-glow", {
-      y: -12, duration: 3, ease: "sine.inOut", yoyo: true, repeat: -1, delay: 2.2,
-    });
+    // (.cross-glow element removed — animations cleaned up)
     gsap.utils.toArray(".particle").forEach((el, i) => {
       gsap.to(el, {
         y: -40 - i * 10,
@@ -499,7 +493,12 @@ export default function Home() {
                     <img
                       src={img.url}
                       alt={img.caption || "Church Gallery"}
+                      crossOrigin="anonymous"
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentElement.style.background = "linear-gradient(135deg, #e8eaf6, #c5cae9)";
+                      }}
                     />
                     {img.caption && (
                       <div

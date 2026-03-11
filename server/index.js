@@ -75,8 +75,10 @@ const DEFAULT_SERVICES = [
 if (!fs.existsSync(DATA_FILE))    fs.writeFileSync(DATA_FILE,    JSON.stringify({ members: [] }, null, 2));
 if (!fs.existsSync(EVENTS_FILE))  fs.writeFileSync(EVENTS_FILE,  JSON.stringify({ events: DEFAULT_EVENTS }, null, 2));
 if (!fs.existsSync(SERVICES_FILE))fs.writeFileSync(SERVICES_FILE,JSON.stringify({ services: DEFAULT_SERVICES }, null, 2));
-if (!fs.existsSync(GALLERY_FILE)) fs.writeFileSync(GALLERY_FILE, JSON.stringify({ images: [] }, null, 2));
 if (!fs.existsSync(CONFIG_FILE))  fs.writeFileSync(CONFIG_FILE,  JSON.stringify({ smsApiKey: "", senderName: "DIVRCH", adminPassword: "admin@123", churchName: "Divine Resurrection Church, Mullakadu" }, null, 2));
+
+// Always write an empty gallery.json if missing; we'll fill it from Cloudinary below
+if (!fs.existsSync(GALLERY_FILE)) fs.writeFileSync(GALLERY_FILE, JSON.stringify({ images: [] }, null, 2));
 
 // ── Helpers ─────────────────────────────────────────────────────
 const read  = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
@@ -98,6 +100,51 @@ const getServices = () => read(SERVICES_FILE).services;
 const saveServices= (s) => write(SERVICES_FILE, { services: s });
 const getGallery  = () => read(GALLERY_FILE).images;
 const saveGallery = (g) => write(GALLERY_FILE, { images: g });
+
+// ── Sync gallery from Cloudinary on startup ─────────────────────────────────
+// This fixes the Render ephemeral-filesystem problem: even if gallery.json is
+// wiped on restart, we rebuild it from Cloudinary's drc-gallery folder.
+async function syncGalleryFromCloudinary() {
+  try {
+    const result = await cloudinary.search
+      .expression('folder:drc-gallery')
+      .sort_by('created_at', 'desc')
+      .max_results(200)
+      .execute();
+
+    if (!result.resources || result.resources.length === 0) {
+      console.log('ℹ️  No images found in Cloudinary drc-gallery folder.');
+      return;
+    }
+
+    // Build a map of existing entries keyed by Cloudinary public_id
+    const existing = getGallery();
+    const existingByPublicId = {};
+    existing.forEach(img => { existingByPublicId[img.filename] = img; });
+
+    // Merge: keep existing caption/metadata, add new entries from Cloudinary
+    const merged = result.resources.map((r) => {
+      if (existingByPublicId[r.public_id]) {
+        return { ...existingByPublicId[r.public_id], url: r.secure_url };
+      }
+      return {
+        id: `g${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        filename: r.public_id,
+        url: r.secure_url,
+        caption: '',
+        uploadedAt: r.created_at,
+      };
+    });
+
+    saveGallery(merged);
+    console.log(`✅ Gallery synced from Cloudinary: ${merged.length} image(s)`);
+  } catch (err) {
+    console.error('⚠️  Gallery Cloudinary sync failed:', err.message);
+  }
+}
+
+// Run sync immediately on startup
+syncGalleryFromCloudinary();
 
 // ── AUTH ────────────────────────────────────────────────────────
 app.post("/api/auth/login", (req, res) => {
@@ -159,6 +206,12 @@ app.delete("/api/services/:id", (req, res) => {
 
 // ── GALLERY ─────────────────────────────────────────────────────
 app.get("/api/gallery", (req, res) => res.json(getGallery()));
+
+// Manual re-sync endpoint (useful after Render restarts)
+app.post("/api/gallery/sync", async (req, res) => {
+  await syncGalleryFromCloudinary();
+  res.json({ success: true, count: getGallery().length });
+});
 
 app.post("/api/gallery/upload", upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No image uploaded" });
